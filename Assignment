@@ -1,0 +1,121 @@
+import java.util.Scanner;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.json.JSONObject;
+
+public class WeatherApp {
+
+    private static final String API_KEY = "YOUR_API_KEY";
+    private static final String BASE_URL = "https://api.openweathermap.org/data/2.5/forecast/hourly";
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        int choice;
+        do {
+            printMenu();
+            choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1:
+                    getWeatherData(scanner);
+                    break;
+                case 2:
+                    getWindSpeedData(scanner);
+                    break;
+                case 3:
+                    getPressureData(scanner);
+                    break;
+                case 0:
+                    System.out.println("Exiting the program. Goodbye!");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        } while (choice != 0);
+
+        scanner.close();
+    }
+
+    private static void printMenu() {
+        System.out.println("Menu:");
+        System.out.println("1. Get weather");
+        System.out.println("2. Get Wind Speed");
+        System.out.println("3. Get Pressure");
+        System.out.println("0. Exit");
+        System.out.println("Enter your choice:");
+    }
+
+    private static void getWeatherData(Scanner scanner) {
+        System.out.println("Enter the date (YYYY-MM-DD format):");
+        String date = scanner.next();
+        String apiUrl = buildApiUrl(date);
+
+        JSONObject weatherData = fetchDataFromApi(apiUrl);
+        if (weatherData != null) {
+            double temperature = weatherData.getJSONArray("list")
+                    .getJSONObject(0)
+                    .getJSONObject("main")
+                    .getDouble("temp");
+            System.out.println("Temperature on " + date + ": " + temperature + "°C");
+        } else {
+            System.out.println("Unable to fetch weather data for the given date.");
+        }
+    }
+
+    private static void getWindSpeedData(Scanner scanner) {
+        System.out.println("Enter the date (YYYY-MM-DD format):");
+        String date = scanner.next();
+        String apiUrl = buildApiUrl(date);
+
+        JSONObject weatherData = fetchDataFromApi(apiUrl);
+        if (weatherData != null) {
+            double windSpeed = weatherData.getJSONArray("list")
+                    .getJSONObject(0)
+                    .getJSONObject("wind")
+                    .getDouble("speed");
+            System.out.println("Wind Speed on " + date + ": " + windSpeed + " m/s");
+        } else {
+            System.out.println("Unable to fetch wind speed data for the given date.");
+        }
+    }
+
+    private static void getPressureData(Scanner scanner) {
+        System.out.println("Enter the date (YYYY-MM-DD format):");
+        String date = scanner.next();
+        String apiUrl = buildApiUrl(date);
+
+        JSONObject weatherData = fetchDataFromApi(apiUrl);
+        if (weatherData != null) {
+            double pressure = weatherData.getJSONArray("list")
+                    .getJSONObject(0)
+                    .getJSONObject("main")
+                    .getDouble("pressure");
+            System.out.println("Pressure on " + date + ": " + pressure + " hPa");
+        } else {
+            System.out.println("Unable to fetch pressure data for the given date.");
+        }
+    }
+
+    private static String buildApiUrl(String date) {
+        return BASE_URL + "?q=London,uk&appid=" + API_KEY + "&dt=" + date;
+    }
+
+    private static JSONObject fetchDataFromApi(String apiUrl) {
+        try {
+            URL url = new URL(apiUrl);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+            return new JSONObject(response.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
